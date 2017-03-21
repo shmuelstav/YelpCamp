@@ -10,19 +10,13 @@ app.use(bodyParser.urlencoded({extended:true}));
 
 app.set ("view engine" , "ejs");
 
-
-var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/Campgrounds');
-
-var CampgroundsSchema = mongoose.Schema({
-    name: String,
-    image: String,
-    description: String
-});
-
-var Campgrounds = mongoose.model('Campgrounds',CampgroundsSchema );
+//var Comment = require("./models/Comment.js");
+var Campgrounds = require("./models/Campground.js");
 
 
+//---------------------------------------------------------\\
+//                             Campground routes
+//----------------------------------------------------------\\
 
 app.get("/",function(req,res){
     res.render("landing");
@@ -74,6 +68,15 @@ app.get("/campgrounds/:id",function(req,res){
 
     }
 );
+
+//---------------------------------------------------------\\
+//                             Comments routes
+//----------------------------------------------------------\\
+
+app.get("/campgrounds/:id/comments/new",function(req,res){
+    res.send("This will be new route");
+})
+
 
 app.listen(63342,function(){
     console.log("server up -YelpCamp");
