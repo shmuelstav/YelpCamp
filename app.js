@@ -8,74 +8,76 @@ var bodyParser = require('body-parser')
 
 app.use(bodyParser.urlencoded({extended:true}));
 
+var passport =  require("passport");
+
+var flash = require("connect-flash");
+
+app.use(flash());
+var LocalStrategy = require("passport-local");
+app.use(express.static(__dirname + "/public"))
 app.set ("view engine" , "ejs");
 
-//var Comment = require("./models/Comment.js");
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/YelpCamp');
+var Comment = require("./models/Comment.js");
 var Campgrounds = require("./models/Campground.js");
+var Users = require("./models/User.js");
+var methodOverride = require('method-override');
+app.use(methodOverride('_method'))
+
+app.use(require('express-session')({
+    secret :"my dog",
+    resave: false,
+    saveUninitialized : false
+}));
 
 
-//---------------------------------------------------------\\
-//                             Campground routes
-//----------------------------------------------------------\\
 
-app.get("/",function(req,res){
-    res.render("landing");
- }
-);
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+    done(null, user);
+});
+
+passport.use(new LocalStrategy(Users.authenticate()));
+
+app.use(function(req,res,next){
+    res.locals.currentUser = req.user;
+    res.locals.error = req.flash("error");
+    res.locals.success = req.flash("success");
+    next();
+});
 
 
-app.get("/campgrounds",function(req,res){
-    Campgrounds.find({}, function (err,AllCampgrounds){
-     if (err) {
-        console.log("problem with Campgrounds");
-     }
-     else{
-        res.render("index",{campgrounds :AllCampgrounds});
-     }
-     })
+
+//-------------------------------------------------------------//
+//                               Router
+//-------------------------------------------------------------//
+
+var campgroundsRouter = require ('./routs/campgrounds');
+var commentsRouter = require ('./routs/comment');
+var userRouter = require ('./routs/user');
+
+function isLoggedin(req,res,next){
+    if(req.isAuthenticated()){
+        console.log("is authentucated");
+        return next();
     }
-);
-
-
-app.post("/campgrounds",function(req,res){
-        Campgrounds.create({name: req.body.name,image:req.body.image,description:req.body.description},function(err,newcamp){
-            if(err){
-                console.log("problem to add new canp");
-            }
-            else{
-                console.log(newcamp);
-            }
-        });
-        res.redirect("/campgrounds");
+    else {
+        res.redirect("/login");
     }
-);
 
-app.get("/campgrounds/new",function(req,res){
-        res.render("new");
-    }
-);
+}
 
-app.get("/campgrounds/:id",function(req,res){
-    Campgrounds.findById(req.params.id,function(err,foundcampground){
-        if (err){
-            console.log("campground not found");
-        }
-        else {
-            console.log(foundcampground.name);
-            res.render("show",{campground :foundcampground});
-        }
-    })
 
-    }
-);
-
-//---------------------------------------------------------\\
-//                             Comments routes
-//----------------------------------------------------------\\
-
-app.get("/campgrounds/:id/comments/new",function(req,res){
-    res.send("This will be new route");
-})
+app.use (campgroundsRouter);
+app.use (commentsRouter);
+app.use (userRouter);
 
 
 app.listen(63342,function(){

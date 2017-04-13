@@ -11,13 +11,27 @@
        </div>
         <div class="collapse-navbar">
             <ul  class="nav navbar-nav navbar-right" >
-                <li><a>login </a></li>
-                <li><a>Sign up </a></li>
-                <li><a>Log out </a></li>
+                <%if (currentUser) { %>
+                <li><a href="/login">Sign as: <%=currentUser.username %></a></li>
+                <li><a href="/logout">Log out </a></li>
+                <%}%>
+                <%if (!currentUser) { %>
+                <li><a href="/login">login </a></li>
+                <li><a href="/register">Sign up </a></li>
+                <%}%>
             </ul>
         </div>
     </div>
 </nav>
 
+<%if (error && error.length>0){%>
+<div class="container">
+    <div class="alert alert-danger" role="alert"><%=error%></div>
+</div>
+<%}%>
 
-
+<%if (success && success.length>0){%>
+<div class="container">
+    <div class="alert alert-success" role="alert"><%=success%></div>
+</div>
+<%}%>
